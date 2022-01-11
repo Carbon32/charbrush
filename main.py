@@ -8,6 +8,11 @@
 # Imports: #
 
 import pygame
+import random
+
+# Colors: #
+
+from colors import *
 
 # Pygame Initialization: 
 
@@ -16,25 +21,6 @@ pygame.init()
 # Editor Variables: #
 
 editorRunning = True
-
-whiteColor = (255, 255, 255)
-blackColor = (0, 0, 0)
-redColor = (255, 0, 0)
-greenColor = (0, 255, 0)
-blueColor = (0, 0, 255)
-yellowColor = (255, 215, 0)
-cyanColor = (0,255,255)
-pinkColor = (255, 20, 147)
-brownColor = (139, 69, 19)
-barColor = (26, 26, 26)
-blueVioletColor = (138, 43, 226)
-limeColor = (0,255,0)
-oliveColor = (128, 128, 0)
-steelBlue = (70, 130, 180)
-plumColor = (221, 160, 221)
-lightPinkColor = (255, 182, 193)
-lightBrownColor = (188, 143, 143)
-greyColor = (128, 128, 128)
 
 drawingColor = blackColor
 
@@ -104,26 +90,48 @@ class Button():
 
 buttons = [
 	Button(10, screenHeight - toolbarHeight / 2 - 25, 20, 20, whiteColor),
-	Button(40, screenHeight - toolbarHeight / 2 - 25, 20, 20, redColor),
-	Button(70, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueColor),
-	Button(100, screenHeight - toolbarHeight / 2 - 25, 20, 20, greenColor),
-	Button(130, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueVioletColor),
-	Button(160, screenHeight - toolbarHeight / 2 - 25, 20, 20, limeColor),
-	Button(190, screenHeight - toolbarHeight / 2 - 25, 20, 20, oliveColor),
-	Button(220, screenHeight - toolbarHeight / 2 - 25, 20, 20, steelBlue),
+	Button(35, screenHeight - toolbarHeight / 2 - 25, 20, 20, redColor),
+	Button(60, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueColor),
+	Button(85, screenHeight - toolbarHeight / 2 - 25, 20, 20, greenColor),
+	Button(110, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueVioletColor),
+	Button(135, screenHeight - toolbarHeight / 2 - 25, 20, 20, limeColor),
+	Button(160, screenHeight - toolbarHeight / 2 - 25, 20, 20, oliveColor),
+	Button(185, screenHeight - toolbarHeight / 2 - 25, 20, 20, steelBlue),
+	Button(210, screenHeight - toolbarHeight / 2 - 25, 20, 20, lightYellow),
+	Button(235, screenHeight - toolbarHeight / 2 - 25, 20, 20, darkBrown),
+	Button(260, screenHeight - toolbarHeight / 2 - 25, 20, 20, darkPink),
+	Button(285, screenHeight - toolbarHeight / 2 - 25, 20, 20, lightRed),
 	Button(10, screenHeight - toolbarHeight / 2, 20, 20, cyanColor),
-	Button(40, screenHeight - toolbarHeight / 2, 20, 20, yellowColor),
-	Button(70, screenHeight - toolbarHeight / 2, 20, 20, brownColor),
-	Button(100, screenHeight - toolbarHeight / 2, 20, 20, pinkColor),
-	Button(130, screenHeight - toolbarHeight / 2, 20, 20, plumColor),
-	Button(160, screenHeight - toolbarHeight / 2, 20, 20, lightBrownColor),
-	Button(190, screenHeight - toolbarHeight / 2, 20, 20, lightPinkColor),
-	Button(220, screenHeight - toolbarHeight / 2, 20, 20, greyColor),
-	Button(500, screenHeight - toolbarHeight / 2 - 25, 80, 40, whiteColor, "Erase", blackColor),
-	Button(400, screenHeight - toolbarHeight / 2 - 25, 80, 40, whiteColor, "Clear", blackColor)
+	Button(35, screenHeight - toolbarHeight / 2, 20, 20, yellowColor),
+	Button(60, screenHeight - toolbarHeight / 2, 20, 20, brownColor),
+	Button(85, screenHeight - toolbarHeight / 2, 20, 20, pinkColor),
+	Button(110, screenHeight - toolbarHeight / 2, 20, 20, plumColor),
+	Button(135, screenHeight - toolbarHeight / 2, 20, 20, lightBrownColor),
+	Button(160, screenHeight - toolbarHeight / 2, 20, 20, lightPinkColor),
+	Button(185, screenHeight - toolbarHeight / 2, 20, 20, greyColor),
+	Button(210, screenHeight - toolbarHeight / 2, 20, 20, darkBlue),
+	Button(235, screenHeight - toolbarHeight / 2, 20, 20, lightGreen),
+	Button(260, screenHeight - toolbarHeight / 2, 20, 20, skyBlue),
+	Button(285, screenHeight - toolbarHeight / 2, 20, 20, darkGrey),
+	Button(510, screenHeight - toolbarHeight / 2 - 40, 80, 40, whiteColor, "Erase", blackColor),
+	Button(420, screenHeight - toolbarHeight / 2 - 40, 80, 40, whiteColor, "Clear", blackColor),
+	Button(420, screenHeight - toolbarHeight / 2 + 5, 170, 40, whiteColor, "Screenshot", blackColor),
+	Button(330, screenHeight - toolbarHeight / 2 - 20, 80, 40, whiteColor, "Grid", blackColor)
 ]
 
 # Editor Functions: #
+
+def screenShot():
+	pictureID = 0
+	size = pygame.Rect(0, 0, screenWidth, screenHeight - toolbarHeight)
+	subSurface = window.subsurface(size)
+	screenshot = pygame.Surface((screenWidth, screenHeight - toolbarHeight))
+	screenshot.blit(subSurface, (0,0))
+	for i in range(10):
+	    randomInt = random.randint(0, 255)
+	    pictureID = randomInt
+	pygame.image.save(screenshot, f"picture_{pictureID}.jpg")
+	pictureID = 0
 
 def initGrid(rows : int, columns : int, color : tuple):
 	grid = []
@@ -186,6 +194,17 @@ while(editorRunning):
 					drawingColor = buttons[i].color
 					if(buttons[i].text == "Clear"):
 						grid = initGrid(rows, columns, whiteColor)
+						drawingColor = blackColor
+
+					if(buttons[i].text == "Screenshot"):
+						screenShot()
+						drawingColor = blackColor
+
+					if(buttons[i].text == "Grid"):
+						if(drawGridLines == True):
+							drawGridLines = False
+						else:
+							drawGridLines = True
 						drawingColor = blackColor
 
 	pygame.display.update()
