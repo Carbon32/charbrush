@@ -22,7 +22,19 @@ blackColor = (0, 0, 0)
 redColor = (255, 0, 0)
 greenColor = (0, 255, 0)
 blueColor = (0, 0, 255)
+yellowColor = (255, 215, 0)
+cyanColor = (0,255,255)
+pinkColor = (255, 20, 147)
+brownColor = (139, 69, 19)
 barColor = (26, 26, 26)
+blueVioletColor = (138, 43, 226)
+limeColor = (0,255,0)
+oliveColor = (128, 128, 0)
+steelBlue = (70, 130, 180)
+plumColor = (221, 160, 221)
+lightPinkColor = (255, 182, 193)
+lightBrownColor = (188, 143, 143)
+greyColor = (128, 128, 128)
 
 drawingColor = blackColor
 
@@ -34,7 +46,7 @@ screenWidth = 600
 screenHeight = 700
 
 window = pygame.display.set_mode((screenWidth, screenHeight))
-pygame.display.set_caption('Python Sprite Editor: ')
+pygame.display.set_caption('Python Pixel Editor: ')
 
 # Tool Bar: #
 
@@ -43,6 +55,11 @@ toolbarHeight = screenHeight - screenWidth
 # Pixel Size: #
 
 pixelSize = screenWidth // columns
+
+# Editor Icon: #
+
+icon = pygame.image.load('logo.png')
+pygame.display.set_icon(icon)
 
 # Grid Settings: #
 
@@ -90,8 +107,20 @@ buttons = [
 	Button(40, screenHeight - toolbarHeight / 2 - 25, 20, 20, redColor),
 	Button(70, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueColor),
 	Button(100, screenHeight - toolbarHeight / 2 - 25, 20, 20, greenColor),
-	Button(200, screenHeight - toolbarHeight / 2 - 25, 80, 40, whiteColor, "Erase", blackColor),
-	Button(300, screenHeight - toolbarHeight / 2 - 25, 80, 40, whiteColor, "Clear", blackColor)
+	Button(130, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueVioletColor),
+	Button(160, screenHeight - toolbarHeight / 2 - 25, 20, 20, limeColor),
+	Button(190, screenHeight - toolbarHeight / 2 - 25, 20, 20, oliveColor),
+	Button(220, screenHeight - toolbarHeight / 2 - 25, 20, 20, steelBlue),
+	Button(10, screenHeight - toolbarHeight / 2, 20, 20, cyanColor),
+	Button(40, screenHeight - toolbarHeight / 2, 20, 20, yellowColor),
+	Button(70, screenHeight - toolbarHeight / 2, 20, 20, brownColor),
+	Button(100, screenHeight - toolbarHeight / 2, 20, 20, pinkColor),
+	Button(130, screenHeight - toolbarHeight / 2, 20, 20, plumColor),
+	Button(160, screenHeight - toolbarHeight / 2, 20, 20, lightBrownColor),
+	Button(190, screenHeight - toolbarHeight / 2, 20, 20, lightPinkColor),
+	Button(220, screenHeight - toolbarHeight / 2, 20, 20, greyColor),
+	Button(500, screenHeight - toolbarHeight / 2 - 25, 80, 40, whiteColor, "Erase", blackColor),
+	Button(400, screenHeight - toolbarHeight / 2 - 25, 80, 40, whiteColor, "Clear", blackColor)
 ]
 
 # Editor Functions: #
