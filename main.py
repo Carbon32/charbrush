@@ -1,6 +1,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #													        #
-#			         Python Sprite Editor					#
+#			         Python Pixel Editor					#
 #			          Developer: Carbon				        #
 #													   	    #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -22,6 +22,7 @@ blackColor = (0, 0, 0)
 redColor = (255, 0, 0)
 greenColor = (0, 255, 0)
 blueColor = (0, 0, 255)
+barColor = (26, 26, 26)
 
 drawingColor = blackColor
 
@@ -85,7 +86,7 @@ class Button():
 # Buttons: #
 
 buttons = [
-	Button(10, screenHeight - toolbarHeight / 2 - 25, 20, 20, blackColor),
+	Button(10, screenHeight - toolbarHeight / 2 - 25, 20, 20, whiteColor),
 	Button(40, screenHeight - toolbarHeight / 2 - 25, 20, 20, redColor),
 	Button(70, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueColor),
 	Button(100, screenHeight - toolbarHeight / 2 - 25, 20, 20, greenColor),
@@ -134,7 +135,7 @@ grid = initGrid(rows, columns, whiteColor)
 
 while(editorRunning):
 	handleFPS.tick(60)
-	window.fill(whiteColor)
+	window.fill(barColor)
 	drawGrid(window, grid)
 	for i in range(len(buttons)):
 		buttons[i].draw(window)
@@ -149,7 +150,14 @@ while(editorRunning):
 				row, column = getPosition(position)
 				grid[row][column] = drawingColor
 			except IndexError:
-				pass
+				for i in range(len(buttons)):
+					if(not (buttons[i].isClicked(position))):
+						continue
+
+					drawingColor = buttons[i].color
+					if(buttons[i].text == "Clear"):
+						grid = initGrid(rows, columns, whiteColor)
+						drawingColor = blackColor
 
 	pygame.display.update()
  
