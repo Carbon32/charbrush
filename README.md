@@ -1,3 +1,4 @@
 # Python Pixel Editor: 
 
-A new custom Python Pixel Editor (Under Development)
+A Python Pixel Editor, you can draw pixel art using this simple tool. Click on Screenshot to save the drawing.
+
