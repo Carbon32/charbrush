@@ -1,8 +1,8 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#													        #
-#			         Python Pixel Editor					#
-#			          Developer: Carbon				        #
-#													   	    #
+#                                                           #
+#                    Python Pixel Editor                    #
+#                     Developer: Carbon                     #
+#                                                           #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Imports: #
@@ -10,204 +10,136 @@
 import pygame
 import random
 
-# Colors: #
+# Editor: #
 
-from colors import *
+class Editor():
+    def __init__(self, init_screen_width, init_screen_height, board_width, board_height):
 
-# Pygame Initialization: 
+        # Properties:
 
-pygame.init()
+        self.screen_width, self.screen_height = init_screen_width, init_screen_height
+        self.board_width, self.board_height = board_width, board_height
+        self.window_running = True
+        self.fps_handler = pygame.time.Clock()
 
-# Editor Variables: #
+        # Board Properties:
 
-editorRunning = True
+        self.rows = self.board_width // 16
+        self.columns = self.board_width // 16
+        self.pixel_size = (self.board_width // self.columns)
 
-drawingColor = blackColor
+        # Grid Properties:
 
-rows = columns = 30
+        self.grid = []
+        self.grid_ready = False
 
-# Window: #
+        # Color Properties:
 
-screenWidth = 600
-screenHeight = 700
+        self.color_picker_rectangle = pygame.Rect(self.board_width // 16, self.board_height - (self.board_height // 6), self.board_width // 4.6, self.board_height // 16)
+        self.color_picker_image = pygame.Surface((self.board_width // 3, self.board_height // 16))
+        self.color_picker_image.fill((40, 42, 53))
+        self.rad = (self.board_height // 16) // 2
+        self.color_length = (self.board_width // 4) - self.rad * 4
+        self.color = 0.5
 
-window = pygame.display.set_mode((screenWidth, screenHeight))
-pygame.display.set_caption('Python Pixel Editor: ')
+        for i in range(self.color_length):
+            color = pygame.Color(0)
+            color.hsla = (int(360 * i / self.color_length), 100, 50, 100)
+            pygame.draw.rect(self.color_picker_image, color, (i + self.rad -  int(self.board_width / self.board_height) * 16, (self.board_height // 16) // 3, int(self.board_width / self.board_height) * 32, (self.board_height // 16) - 2 * (self.board_height // 16) // 3))
 
-# Tool Bar: #
+        self.current_color = self.get_current_color()
 
-toolbarHeight = screenHeight - screenWidth
+    def start_window(self):
+        self.window = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
+        self.board = pygame.Surface((self.board_width, self.board_height))
+        pygame.display.set_caption('Pixel Editor: ')
 
-# Pixel Size: #
+    def draw_tool_bar(self):
+        pygame.draw.rect(self.board, (40, 42, 53), (0, (self.board_height // 2) + self.board_height // 3.33, self.board_width, self.board_height // 5))
+        pygame.draw.rect(self.board, (0, 0, 0), (0, (self.board_height // 2) + self.board_height // 3.25, self.board_width, self.board_height // 5.3), int(self.board_width / self.board_height * 10))
 
-pixelSize = screenWidth // columns
+    def get_current_color(self):
+        color = pygame.Color(0)
+        color.hsla = (int(self.color * self.color_length), 100, 50, 100)
+        return color
 
-# Editor Icon: #
+    def draw_colors(self):
+        self.board.blit(self.color_picker_image, self.color_picker_rectangle)
+        pygame.draw.rect(self.board, (0, 0, 0), self.color_picker_rectangle, int(self.board_width / self.board_height * 12), border_radius = self.board_width // 8)
+        pygame.draw.circle(self.board, self.get_current_color(), (self.color_picker_rectangle.left + self.rad + self.color * self.color_length, self.color_picker_rectangle.centery), self.color_picker_rectangle.height // 3)
 
-icon = pygame.image.load('logo.png')
-pygame.display.set_icon(icon)
+    def update_colors(self):
+        position = pygame.mouse.get_pos()
+        ratio_x = (self.screen_width / self.board_width)
+        ratio_y = (self.screen_height / self.board_height)
+        position = (position[0] / ratio_x, position[1] / ratio_y)
+        if(pygame.mouse.get_pressed()[0] and self.color_picker_rectangle.collidepoint(position)):
+            self.color = (position[0] - self.color_picker_rectangle.left - self.rad) / self.color_length
+            self.color = (max(0, min(self.color, 1)))
 
-# Grid Settings: #
+        self.current_color = self.get_current_color()
 
-drawGridLines = True
+    def init_grid(self):
+        if(not self.grid_ready):
+            for i in range(self.rows):
+                self.grid.append([])
+                for j in range(self.columns):
+                    self.grid[i].append((255, 255, 255))
 
-# FPS Handler: #
+            for i, row in enumerate(self.grid):
+                for j, pixel in enumerate(row):
+                    pygame.draw.rect(self.board, (pixel), (j * self.pixel_size, i * self.pixel_size, self.pixel_size, self.pixel_size))
 
-handleFPS = pygame.time.Clock()
+            self.grid_ready = True
 
-# Button Class: #
+    def update_editor(self):
+        self.init_grid()
+        self.draw_tool_bar()
+        self.draw_colors()
+        self.update_colors()
+        self.start_drawing()
+        self.window.blit(pygame.transform.smoothscale(self.board, (self.screen_width, self.screen_height)), (0, 0))
 
-class Button():
-	def __init__(self, x : int, y : int, width : int, height : int, color : tuple, text = None, textColor = blackColor):
-		self.x = x
-		self.y = y 
-		self.width = width
-		self.height = height 
-		self.color = color 
-		self.text = text
-		self.textColor = textColor
+    def get_mouse_position(self, position):
+        ratio_x = (self.screen_width / self.board_width)
+        ratio_y = (self.screen_height / self.board_height)
+        position = (position[0] / ratio_x, position[1] / ratio_y)
+        if(position[1] < self.board_height - (self.board_height // 5)):
+            row, column = int(position[1] // self.pixel_size), int(position[0] // self.pixel_size)
+            return row, column
+        else:
+            return -1, -1
 
-	def draw(self, window : pygame.Surface):
-		pygame.draw.rect(window, self.color, (self.x, self.y, self.width, self.height))
-		pygame.draw.rect(window, blackColor, (self.x, self.y, self.width, self.height), 2)
+    def start_drawing(self):
+        if(pygame.mouse.get_pressed()[0]):
+            row, column = self.get_mouse_position(pygame.mouse.get_pos())
+            if(self.grid[row][column] != self.current_color):
+                self.grid[row][column] = self.current_color
+                pygame.draw.rect(self.board, (self.current_color), (column * self.pixel_size, row * self.pixel_size, self.pixel_size, self.pixel_size))
 
-		if(self.text):
-			buttonFont = pygame.font.SysFont('System', 30)
-			textSurface = buttonFont.render(self.text, 1, self.textColor)
-			window.blit(textSurface, (self.x + self.width / 2 - textSurface.get_width() / 2, self.y + self.height / 2 - textSurface.get_height() / 2))
+        if(pygame.mouse.get_pressed()[2]):
+            row, column = self.get_mouse_position(pygame.mouse.get_pos())
+            if(self.grid[row][column] != (255, 255, 255)):
+                self.grid[row][column] = (255, 255, 255)
+                pygame.draw.rect(self.board, (255, 255, 255), (column * self.pixel_size, row * self.pixel_size, self.pixel_size, self.pixel_size))
 
-	def isClicked(self, position : tuple):
-		x, y = position
-		if(not (x >= self.x and x <= self.x + self.width)):
-			return False
+    def update_window(self, fps):
+        self.fps_handler.tick(fps)
+        print(self.fps_handler)
+        for event in pygame.event.get():
+            if(event.type == pygame.QUIT):
+                self.window_running = False
+                quit()
+            if(event.type == pygame.VIDEORESIZE):
+                self.screen_width, self.screen_height = pygame.display.get_surface().get_size()
 
-		if(not (y >= self.y and y <= self.y + self.height)):
-			return False
+        pygame.display.update()
 
-		return True
+# Pixel Editor: #
 
-# Buttons: #
+editor = Editor(800, 600, 1920, 1080)
+editor.start_window()
 
-buttons = [
-	Button(10, screenHeight - toolbarHeight / 2 - 25, 20, 20, whiteColor),
-	Button(35, screenHeight - toolbarHeight / 2 - 25, 20, 20, redColor),
-	Button(60, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueColor),
-	Button(85, screenHeight - toolbarHeight / 2 - 25, 20, 20, greenColor),
-	Button(110, screenHeight - toolbarHeight / 2 - 25, 20, 20, blueVioletColor),
-	Button(135, screenHeight - toolbarHeight / 2 - 25, 20, 20, limeColor),
-	Button(160, screenHeight - toolbarHeight / 2 - 25, 20, 20, oliveColor),
-	Button(185, screenHeight - toolbarHeight / 2 - 25, 20, 20, steelBlue),
-	Button(210, screenHeight - toolbarHeight / 2 - 25, 20, 20, lightYellow),
-	Button(235, screenHeight - toolbarHeight / 2 - 25, 20, 20, darkBrown),
-	Button(260, screenHeight - toolbarHeight / 2 - 25, 20, 20, darkPink),
-	Button(285, screenHeight - toolbarHeight / 2 - 25, 20, 20, lightRed),
-	Button(10, screenHeight - toolbarHeight / 2, 20, 20, cyanColor),
-	Button(35, screenHeight - toolbarHeight / 2, 20, 20, yellowColor),
-	Button(60, screenHeight - toolbarHeight / 2, 20, 20, brownColor),
-	Button(85, screenHeight - toolbarHeight / 2, 20, 20, pinkColor),
-	Button(110, screenHeight - toolbarHeight / 2, 20, 20, plumColor),
-	Button(135, screenHeight - toolbarHeight / 2, 20, 20, lightBrownColor),
-	Button(160, screenHeight - toolbarHeight / 2, 20, 20, lightPinkColor),
-	Button(185, screenHeight - toolbarHeight / 2, 20, 20, greyColor),
-	Button(210, screenHeight - toolbarHeight / 2, 20, 20, darkBlue),
-	Button(235, screenHeight - toolbarHeight / 2, 20, 20, lightGreen),
-	Button(260, screenHeight - toolbarHeight / 2, 20, 20, skyBlue),
-	Button(285, screenHeight - toolbarHeight / 2, 20, 20, darkGrey),
-	Button(510, screenHeight - toolbarHeight / 2 - 40, 80, 40, whiteColor, "Erase", blackColor),
-	Button(420, screenHeight - toolbarHeight / 2 - 40, 80, 40, whiteColor, "Clear", blackColor),
-	Button(420, screenHeight - toolbarHeight / 2 + 5, 170, 40, whiteColor, "Screenshot", blackColor),
-	Button(330, screenHeight - toolbarHeight / 2 - 20, 80, 40, whiteColor, "Grid", blackColor)
-]
-
-# Editor Functions: #
-
-def screenShot():
-	pictureID = 0
-	size = pygame.Rect(0, 0, screenWidth, screenHeight - toolbarHeight)
-	subSurface = window.subsurface(size)
-	screenshot = pygame.Surface((screenWidth, screenHeight - toolbarHeight))
-	screenshot.blit(subSurface, (0,0))
-	for i in range(10):
-	    randomInt = random.randint(0, 255)
-	    pictureID = randomInt
-	pygame.image.save(screenshot, f"picture_{pictureID}.jpg")
-	pictureID = 0
-
-def initGrid(rows : int, columns : int, color : tuple):
-	grid = []
-	for i in range(rows):
-		grid.append([])
-		for j in range(columns):
-			grid[i].append(color)
-
-	return grid
-
-def drawGrid(window : pygame.Surface, grid : list):
-	for i, row in enumerate(grid):
-		for j, pixel in enumerate(row):
-			pygame.draw.rect(window, pixel, (j * pixelSize, i * pixelSize, pixelSize, pixelSize))
-
-	if(drawGridLines):
-		for i in range(rows + 1):
-			pygame.draw.line(window, blackColor, (0, i * pixelSize), (screenWidth, i * pixelSize))
-
-		for i in range(columns + 1):
-			pygame.draw.line(window, blackColor, (i * pixelSize, 0), (i * pixelSize, screenHeight - toolbarHeight))
-
-def getPosition(position : tuple):
-	x, y = position
-	column = x // pixelSize
-	row = y // pixelSize
-
-	if(row >= rows):
-		raise IndexError
-
-	return row, column
-
-# Editor Mechanics: #
-
-grid = initGrid(rows, columns, whiteColor)
-
-# Editor Loop: #
-
-while(editorRunning):
-	handleFPS.tick(60)
-	window.fill(barColor)
-	drawGrid(window, grid)
-	for i in range(len(buttons)):
-		buttons[i].draw(window)
-	for event in pygame.event.get():
-		if(event.type == pygame.QUIT):
-			editorRunning = False
-
-		if(pygame.mouse.get_pressed()[0]):
-			position = pygame.mouse.get_pos()
-
-			try:
-				row, column = getPosition(position)
-				grid[row][column] = drawingColor
-			except IndexError:
-				for i in range(len(buttons)):
-					if(not (buttons[i].isClicked(position))):
-						continue
-
-					drawingColor = buttons[i].color
-					if(buttons[i].text == "Clear"):
-						grid = initGrid(rows, columns, whiteColor)
-						drawingColor = blackColor
-
-					if(buttons[i].text == "Screenshot"):
-						screenShot()
-						drawingColor = blackColor
-
-					if(buttons[i].text == "Grid"):
-						if(drawGridLines == True):
-							drawGridLines = False
-						else:
-							drawGridLines = True
-						drawingColor = blackColor
-
-	pygame.display.update()
- 
-
-pygame.quit()
+while(editor.window_running):
+    editor.update_editor()
+    editor.update_window(120)
