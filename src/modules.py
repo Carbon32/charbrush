@@ -7,13 +7,13 @@
 
 # Imports: #
 
-from src.editor import *
+try:
+    import pygame 
+    import random
 
-# Pixel Editor: #
+except ImportError:
+    raise ImportError("Pixel Editor couldn't import all of the necessary packages.")
 
-editor = Editor(800, 600, 1920, 1080)
-editor.start_window()
+# Pygame Initialization: #
 
-while(editor.window_running):
-    editor.update_editor()
-    editor.update_window(120)
+pygame.init()
