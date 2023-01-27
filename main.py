@@ -8,11 +8,21 @@
 # Imports: #
 
 from src.editor import *
+from src.file_browser import *
 
 # Pixel Editor: #
 
 editor = Editor(800, 600, 1920, 1080)
-editor.start_window()
+
+# File Browser: #
+
+file_browser = FileBrowser(editor)
+
+# Window: #
+
+editor.start_window(file_browser)
+
+# Editor Loop: #
 
 while(editor.window_running):
     editor.update_editor()

@@ -53,45 +53,105 @@ class Editor():
 
         self.font = pygame.font.SysFont(None, self.board_width // 32)
 
+        # Saving: 
+
+        self.saving = False
+
         # Buttons:
 
-        self.clear_button = Button(self, 'Clear', self.board_width // 2.8, (self.board_height // 2) + self.board_height // 2.8, self.board_width // 8, self.board_height // 10, self.board_width // 128)
-        self.save_button = Button(self, 'Save', self.board_width // 2, (self.board_height // 2) + self.board_height // 2.8, self.board_width // 8, self.board_height // 10, self.board_width // 128)
+        self.open_button = Button(self, 'Open', self.board_width // 3.1, (self.board_height // 2) + self.board_height // 2.8, self.board_width // 10, self.board_height // 10, self.board_width // 128)
+        self.clear_button = Button(self, 'Clear', self.board_width // 2.2, (self.board_height // 2) + self.board_height // 2.8, self.board_width // 10, self.board_height // 10, self.board_width // 128)
+        self.save_button = Button(self, 'Save', self.board_width // 1.7, (self.board_height // 2) + self.board_height // 2.8, self.board_width // 10, self.board_height // 10, self.board_width // 128)
+        self.save_screenshot =  Button(self, 'Image', self.board_width // 1.9, self.board_height // 3, self.board_width // 8, self.board_height // 10, self.board_width // 128)
+        self.save_project =  Button(self, 'Project', self.board_width // 2.7, self.board_height // 3, self.board_width // 8, self.board_height // 10, self.board_width // 128)
 
         # Input:
 
-        self.name_input = Input(self, self.board_width // 1.5, (self.board_height // 2) + self.board_height // 2.9, self.board_width // 4, self.board_height // 10)
+        self.save_name_input = Input(self, self.board_width // 1.4, (self.board_height // 2) + self.board_height // 2.9, self.board_width // 4, self.board_height // 10)
 
-    def start_window(self):
+    def start_window(self, file_browser):
         self.window = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
         self.board = pygame.Surface((self.board_width, self.board_height))
+        self.file_browser = file_browser
         pygame.display.set_caption('Pixel Editor: ')
+        pygame.display.set_icon(pygame.image.load('logo.ico'))
 
     def handle_buttons(self):
         if(self.clear_button.render()):
-            self.grid = []
-            self.grid_ready = False
+            if(not self.saving):
+                self.grid = []
+                self.grid_ready = False
 
         if(self.save_button.render()):
-            self.save_image()
+            if(not self.saving):
+                self.create_surface()
+                self.saving = True
+
+        if(self.open_button.render()):
+            self.file_browser.init_file_browser()
+
+        if(self.saving):
+            if(self.save_screenshot.render()):
+                self.save_image()
+                self.saving = False
+
+            elif(self.save_project.render()):
+                self.save_file()
+                self.saving = False
 
     def handle_input(self):
-        self.name_input.update()
+        self.save_name_input.update()
 
     def draw_tool_bar(self):
         pygame.draw.rect(self.board, (40, 42, 53), (0, (self.board_height // 2) + self.board_height // 3.33, self.board_width, self.board_height // 5))
         pygame.draw.rect(self.board, (0, 0, 0), (0, (self.board_height // 2) + self.board_height // 3.25, self.board_width, self.board_height // 5.3), int(self.board_width / self.board_height * 10))
+        if(self.saving):
+            pygame.draw.rect(self.board, (40, 42, 53), (self.board_width // 2.9, self.board_height // 4, self.board_width // 3, self.board_height // 4), border_radius = self.board_width // 64)
+            pygame.draw.rect(self.board, (0, 0, 0), (self.board_width // 2.9, self.board_height // 4, self.board_width // 3, self.board_height // 4), int(self.board_width / self.board_height * 10), border_radius = self.board_width // 64)
 
     def get_current_color(self):
         color = pygame.Color(0)
         color.hsla = (int(self.color * self.color_length), 100, 50, 100)
         return color
 
+    def create_surface(self):
+        self.duplicate_id = ""
+        self.surface = self.board.subsurface(pygame.Rect(0, 0, self.board_width, self.board_height - (self.board_height // 5)))
+        self.screenshot = pygame.Surface((self.board_width, self.board_height - (self.board_height // 5)))
+        self.screenshot.blit(self.surface, (0, 0))
+
     def save_image(self):
-        surface = self.board.subsurface(pygame.Rect(0, 0, self.board_width, self.board_height - (self.board_height // 5)))
-        screenshot = pygame.Surface((self.board_width, self.board_height - (self.board_height // 5)))
-        screenshot.blit(surface, (0, 0))
-        pygame.image.save(screenshot, f"{self.name_input.written_text}.png")
+        if(self.save_name_input.written_text == ""):
+            self.save_name_input.written_text = "Untitled"
+        if(not os.path.exists(f"{self.save_name_input.written_text}{self.duplicate_id}.png")):
+            pygame.image.save(self.screenshot, f"{self.save_name_input.written_text}{self.duplicate_id}.png")
+            self.draw_board()
+        else:
+            if(self.duplicate_id == ""):
+                self.duplicate_id =  "1"
+                self.save_image()
+            else:
+                self.duplicate_id =  str(int(self.duplicate_id) + 1)
+                self.save_image()
+
+    def save_file(self):
+        if(self.save_name_input.written_text == ""):
+            self.save_name_input.written_text = "Untitled"
+        if(not os.path.exists(f"{self.save_name_input.written_text}{self.duplicate_id}.pix")):
+            with open(f'{self.save_name_input.written_text}{self.duplicate_id}.pix', "w") as file:
+                for item in self.grid:
+                    file.write(f'||')
+                    for tup in item:
+                        file.write(f'#{str(tup)}')
+
+            self.draw_board()
+        else:
+            if(self.duplicate_id == ""):
+                self.duplicate_id =  "1"
+                self.save_file()
+            else:
+                self.duplicate_id =  str(int(self.duplicate_id) + 1)
+                self.save_file()
 
     def draw_colors(self):
         self.board.blit(self.color_picker_image, self.color_picker_rectangle)
@@ -113,6 +173,11 @@ class Editor():
 
         self.current_color = self.get_current_color()
 
+    def draw_board(self):
+        for i, row in enumerate(self.grid):
+            for j, pixel in enumerate(row):
+                pygame.draw.rect(self.board, (pixel), (j * self.pixel_size, i * self.pixel_size, self.pixel_size, self.pixel_size))
+
     def init_grid(self):
         if(not self.grid_ready):
             for i in range(self.rows):
@@ -120,10 +185,7 @@ class Editor():
                 for j in range(self.columns):
                     self.grid[i].append((255, 255, 255))
 
-            for i, row in enumerate(self.grid):
-                for j, pixel in enumerate(row):
-                    pygame.draw.rect(self.board, (pixel), (j * self.pixel_size, i * self.pixel_size, self.pixel_size, self.pixel_size))
-
+            self.draw_board()
             self.grid_ready = True
 
     def update_editor(self):
@@ -145,21 +207,21 @@ class Editor():
             return -1, -1
 
     def start_drawing(self):
-        if(pygame.mouse.get_pressed()[0]):
-            row, column = self.get_grid_position()
-            if(self.grid[row][column] != self.current_color):
-                self.grid[row][column] = self.current_color
-                pygame.draw.rect(self.board, (self.current_color), (column * self.pixel_size, row * self.pixel_size, self.pixel_size, self.pixel_size))
+        if(not self.saving):
+            if(pygame.mouse.get_pressed()[0]):
+                row, column = self.get_grid_position()
+                if(self.grid[row][column] != self.current_color):
+                    self.grid[row][column] = self.current_color
+                    pygame.draw.rect(self.board, (self.current_color), (column * self.pixel_size, row * self.pixel_size, self.pixel_size, self.pixel_size))
 
-        if(pygame.mouse.get_pressed()[2]):
-            row, column = self.get_grid_position()
-            if(self.grid[row][column] != (255, 255, 255)):
-                self.grid[row][column] = (255, 255, 255)
-                pygame.draw.rect(self.board, (255, 255, 255), (column * self.pixel_size, row * self.pixel_size, self.pixel_size, self.pixel_size))
+            if(pygame.mouse.get_pressed()[2]):
+                row, column = self.get_grid_position()
+                if(self.grid[row][column] != (255, 255, 255)):
+                    self.grid[row][column] = (255, 255, 255)
+                    pygame.draw.rect(self.board, (255, 255, 255), (column * self.pixel_size, row * self.pixel_size, self.pixel_size, self.pixel_size))
 
     def update_window(self, fps):
         self.fps_handler.tick(fps)
-        print(self.fps_handler)
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):
                 self.window_running = False
@@ -167,6 +229,9 @@ class Editor():
             if(event.type == pygame.VIDEORESIZE):
                 self.screen_width, self.screen_height = pygame.display.get_surface().get_size()
 
-            self.name_input.write(event)
+            self.save_name_input.write(event)
+
+        if(self.file_browser.browser_running):
+            self.file_browser.handle_events()
 
         pygame.display.update()
