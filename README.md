@@ -33,7 +33,7 @@ This is a Pixel Editor (don't use this for a professional career, trust me), mad
 * Managing interactive & animated Buttons.
 * Scaling the board to your screen size.
 
-This project is no longer in-development.
+This project is no longer in-development. But that doesn't mean it won't receive some updates. 
 
 ## Installation:
 
@@ -59,7 +59,7 @@ To be able to run Pixel Editor, you need to have Pygame & PySimpleGUI installed 
 
 ## Changelog:
 
-Changes made on: 02/05/2023
+Changes made on: 02/12/2023
 
 * Better documentation
 
